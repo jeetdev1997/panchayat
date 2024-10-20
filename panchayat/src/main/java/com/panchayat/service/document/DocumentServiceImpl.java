@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +24,14 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.itextpdf.html2pdf.ConverterProperties;
-import com.itextpdf.html2pdf.HtmlConverter;
-import com.itextpdf.kernel.font.PdfFont;
-import com.itextpdf.kernel.font.PdfFontFactory;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.font.FontProvider;
+
 import com.panchayat.dto.BuildingDTO;
 import com.panchayat.dto.PropertyDTO;
 import com.panchayat.dto.RateCardDTO;
@@ -43,8 +42,11 @@ import com.panchayat.exception.ResourceNotFoundException;
 import com.panchayat.repository.BuildingRepository;
 import com.panchayat.repository.PropertyRepository;
 import com.panchayat.repository.RateCardRepository;
+import com.panchayat.repository.VillageRepository;
 import com.panchayat.utils.PanchayatConstant;
 import com.panchayat.utils.PanchayatHelpher;
+
+
 
 @Service
 public class DocumentServiceImpl implements IDocumentService {
@@ -57,6 +59,10 @@ public class DocumentServiceImpl implements IDocumentService {
 	
 	@Autowired
 	RateCardRepository cardRepository;
+	
+	@Autowired
+	VillageRepository villageRepository;
+	
 	
     @Value("${excel.file.path}")
     private String filePath;
@@ -146,6 +152,7 @@ public class DocumentServiceImpl implements IDocumentService {
 	public ByteArrayInputStream downloadAmong(String namuna) throws IOException {
 	    List<Property> properties = propertyRepository.findAll();
 	    
+	    
 	   RateCard rateCard = cardRepository.findById(1l).orElseThrow(() -> new ResourceNotFoundException("Rate Card", "", ""));
 	    
 	   RateCardDTO cardDTO = PanchayatHelpher.convertRateCardEntity(rateCard);
@@ -188,7 +195,7 @@ public class DocumentServiceImpl implements IDocumentService {
 
 	private void processRow(Row row, PropertyDTO propertyDTO, BuildingDTO buildingDTO, FormulaEvaluator formulaEvaluator, RateCardDTO cardDTO) {
 	    int cellIndex = 0;
-
+	    List<String> villages =  Arrays.asList(PanchayatConstant.villages);
 	    for (Cell cell : row) {
 	        switch (cellIndex) {
 	            case 0:
@@ -262,16 +269,19 @@ public class DocumentServiceImpl implements IDocumentService {
 	                setNumericCellValue(cell, buildingDTO.getBuildingAge());
 	                break;
 	            case 19:
-	            	setNumericCellValue(cell, cardDTO.getGaavthaan());
+	            	if(villages.contains(propertyDTO.getVillage())) {
+	            		
+	            	}
+	            	//setNumericCellValue(cell, cardDTO.getGaavthaan());
 	            	break;
 	            case 20:
-	            	setNumericCellValue(cell, cardDTO.getGaavthaanKhaaliJaaga());
+	            	//setNumericCellValue(cell, cardDTO.getGaavthaanKhaaliJaaga());
 	            	break;
 	            case 22:
-	            	setNumericCellValue(cell, cardDTO.getKarachaDarEmarat());
+	            	//setNumericCellValue(cell, cardDTO.getKarachaDarEmarat());
 	            	break;
 	            case 23:
-	            	setNumericCellValue(cell, cardDTO.getKarachaDarKhaaliJaaga());
+	            	//setNumericCellValue(cell, cardDTO.getKarachaDarKhaaliJaaga());
 	                break;
 	            case 25:
 	            	formulaEvaluator.evaluateFormulaCell(cell);
@@ -326,270 +336,336 @@ public class DocumentServiceImpl implements IDocumentService {
 	    }
 	}
 
-	
+
+//
+//	@Override
+//	public byte[] generatePdf(Long anukramank, Long id) {
+//		
+//		Property property = propertyRepository.findById(anukramank).orElseThrow(() -> new ResourceNotFoundException(anukramank + "", "", ""));
+//		
+//		List<Building> buildings =  property.getBuildings();
+//		
+//		Building building =null;
+//		
+//		for(Building building2 : buildings) {
+//			if(building2.getId() == id) {
+//				building = building2;
+//			}
+//		}
+//		
+//		String content = "<html lang=\"en\">"
+//			    + "<head>"
+//			    + "<meta charset=\"UTF-8\"/>"
+//			    + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>"
+//			    + "<title>Document</title>"
+//			    + "<style>"
+////			    +"@font-face {"
+////			    +"font-family: 'Mangal';"
+////			    +"src: url('path/to/Mangal.ttf') format('truetype');"
+//			    + "body {"
+//			    + "    margin: 0;"
+//			    + "    padding: 0px;"
+//			    + "    background-color: white;"
+//			    +"font-family: Kokila, sans-serif;\""
+//			    + "}"
+//			    + ".document {"
+//			    + "    display: flex;"
+//			    + "    justify-content: space-between;"
+//			    + "}"
+//			    + ".page {"
+//			    + "    width: 100%;"
+//			    + "    padding: 20px;"
+//			    + "    border: 2px solid #000;"
+//			    + "    background-color: white;"
+//			    + "}"
+//			    + ".header {"
+//			    + "    text-align: center;"
+//			   // + "    margin-bottom: 10px;"
+//			    + "    font-weight: bold;"
+//			    + "}"
+//			    + ".content {"
+//			    + "    margin-bottom: 20px;"
+//			    + "}"
+//			    + ".content p {"
+//			    + "    margin: 2px 0;"
+//			    + "}"
+//			    + "table {"
+//			    + "    width: 100%;"
+//			    + "    border-collapse: collapse;"
+//			    + "    margin-bottom: 20px;"
+//			    + "}"
+//			    + "th, td {"
+//			    + "    border: 1px solid #000;"
+//			    + "    padding: 8px;"
+//			    + "    text-align: left;"
+//			    + "}"
+//			    + "th {"
+//			    + "    background-color: white;"
+//			    + "}"
+//			    + "tfoot {"
+//			    + "    font-weight: bold;"
+//			    + "}"
+//			    + ".footer {"
+//			    + "    text-align: center;"
+//			    + "    margin-top: 20px;"
+//			    + "}"
+//			    + ".footer p {"
+//			    + "    margin: 5px 0;"
+//			    + "}"
+//			    + ".signatures {"
+//			    + "    display: flex;"
+//			    + "    justify-content: space-between;"
+//			    + "    margin-top: 10px;"
+//			    + "}"
+//			    + ".signature {"
+//			    + "    width: 45%;"
+//			    + "    height: 40px;"
+//			    + "    border-top: 1px solid #000;"
+//			    + "    text-align: center;"
+//			    + "    line-height: 40px;"
+//			    + "}"
+//			    + "</style>"
+//			    + "</head>"
+//			    + "<body>"
+//			    + "<div class=\"document\">"
+//			    + "    <!-- Left Side of the Document -->"
+//			    + "    <div class=\"page\">"
+//			    + "        <div class=\"header\">"
+//			    + "            <p>कराच्या मागणीचे बील</p>"
+//			    + "            <p>बिल नं. २०३</p>"
+//			    + "            <p>कार्यालय ग्रामपंचायत किरमोटी (भा) मौजा टेंभरी</p>"
+//			    + "            <p>पंचायत समिती हिंगणा जि. नागपूर</p>"
+//			    + "            <p>( मुंबई ग्रा. पं. कायदा १९५८ कालम १२९ अन्वये)</p>"
+//			    + "        </div>"
+//			    + "        <div class=\"content\">"
+//			    + "            <p> " + property.getOwnerName() + "</p>"
+//			    + "            <p>यांचेकडुन</p>"
+//			    + "            <p>वडगाव</p>"
+//			    + "            <p>वार्ड नं   " + property.getWardNo() + "  घर नं" + property.getPlotNo() +"     खसरा नं.- "+ " " + "सोसायटीचे नाव मौजा टेंभरी याबद्दल</p>"
+//			    + "            <p>सन 2024 - 2025 करीता पुढे नमुद केलेल्या रक्कमा</p>"
+//			    + "        </div>"
+//			    + "        <table>"
+//			    + "            <thead>"
+//			    + "                <tr>"
+//			    + "                    <th>कराची नावे</th>"
+//			    + "                    <th>सन 2023-24 मागील बाकी रुपये</th>"
+//			    + "                    <th>सन 2024-25 चालू वर्ष रुपये</th>"
+//			    + "                    <th>एकूण रक्कम</th>"
+//			    + "                </tr>"
+//			    + "            </thead>"
+//			    + "            <tbody>"
+//			    + "                <tr>"
+//			    + "                    <td>घरावरील कर</td>"
+//			    + "                    <td>" + building.getHomeTaxPrev() + "</td>"
+//			    + "                    <td>" + building.getHomeTaxCurnt() + "</td>"
+//			    + "					   <td>" + (building.getHomeTaxCurnt() + building.getHomeTaxPrev())+ "</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>खाली जागेचा कर</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>दिवाबत्ती कर</td>"
+//			    + "                    <td>" + building.getElectTaxPrev() + "</td>"
+//			    + "                    <td>" + building.getElectTaxCurnt() + "</td>"
+//			    + "					   <td>" + (building.getElectTaxPrev() + building.getElectTaxCurnt())+ "</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>आरोग्य कर</td>"
+//			    + "                    <td>" + building.getHealthTaxPrev() + "</td>"
+//			    + "                    <td>" + building.getHealthTaxCurnt() + "</td>"
+//			    + "					   <td>" + (building.getHealthTaxPrev() + building.getHealthTaxCurnt())+ "</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>सफाई कर</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>सामान्य पाणी कर</td>"
+//			    + "                    <td>" + building.getWaterTaxPrev() + "</td>"
+//			    + "                    <td>" + building.getWaterTaxCurnt() + "</td>"
+//			    + "					   <td>" + (building.getWaterTaxPrev() + building.getWaterTaxCurnt())+ "</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>विशेष पाणी कर</td>"
+//			    + "                    <td>" + building.getSpWaterTaxPrev() + "</td>"
+//			    + "                    <td>" + building.getSpWaterTaxCurnt() + "</td>"
+//			    + "					   <td>" + (building.getSpWaterTaxPrev() + building.getSpWaterTaxCurnt())+ "</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>उशीरा कर</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>नोटीस फी</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>अधिकाऱ्याची (वारंटी फी)</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                </tr>"
+//			    + "                <tr>"
+//			    + "                    <td>इतर</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                    <td>0</td>"
+//			    + "                </tr>"
+//			    + "            </tbody>"
+//			    + "            <tfoot>"
+//			    + "                <tr>"
+//			    + "                    <td>एकूण</td>"
+//			    + "                    <td>"+ (building.getHomeTaxPrev() + building.getElectTaxPrev() + building.getHealthTaxPrev() + building.getWaterTaxPrev() + building.getSpWaterTaxPrev()) +"</td>"
+//			    + "                    <td>"+ (building.getHomeTaxCurnt() + building.getElectTaxCurnt() + building.getHealthTaxCurnt() + building.getWaterTaxCurnt() + building.getSpWaterTaxCurnt()) +"</td>"
+//			    + "                    <td>"+ ((building.getHomeTaxPrev() + building.getElectTaxPrev() + building.getHealthTaxPrev() + building.getWaterTaxPrev() + building.getSpWaterTaxPrev())+(building.getHomeTaxCurnt() + building.getElectTaxCurnt() + building.getHealthTaxCurnt() + building.getWaterTaxCurnt() + building.getSpWaterTaxCurnt())) +"</td>"
+//			    + "                </tr>"
+//			    + "            </tfoot>"
+//			    + "        </table>"
+//			    + "        <div class=\"footer\">"
+//			    + "            <p>वरील बिलात नमूद केलेल्या करदाखल्याच्या रकमा दि ____ आत पा. प. चे कार्यालयात पटवून पावती घ्यावी. असे न केल्यास आपले वर योग्य कारवाई करण्यात येईल.</p>"
+//			    + "            <div class=\"signatures\">"
+//			    + "                <p class=\"signature\">मागणी बिल मिळाल्याचाबत स्वाक्षरी</p></br>"
+//			    + "                <p class=\"signature\">दिनांक:</p>"
+//			    + "                <p class=\"signature\">सरपंच/सचिव</p><br />"
+//			    + "                <p class=\"signature\">ग्रामपंचायत किरमोटी</p>"
+//			    + "            </div></br></br>"
+//			    + "            <div>टिप: महाराष्ट्र ग्रामपंचाय करव की मुधारणा) नियम २०१८ नुसार ३० सप्टेम्बर पर्यंत कर भरल्यास ५० सूट देण्यात येईल</div>"
+//			    + "        </div>"
+//			    + "    </div>"
+//			    + "</div>"
+//			    + "</body>"
+//			    + "</html>";
+//		
+////        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+////        	 String userDir = System.getProperty("user.dir");
+////
+////        	 PdfWriter writer = new PdfWriter(byteArrayOutputStream);
+////             PdfDocument pdfDocument = new PdfDocument(writer);
+////             
+////             PdfFont font = PdfFontFactory.createFont(userDir + "/kokila.ttf", PdfEncodings.IDENTITY_H, pdfDocument);
+////             ConverterProperties converterProperties = new ConverterProperties();
+////             
+////             FontProvider fontProvider = new FontProvider();
+////             fontProvider.addFont(userDir + "/kokila.ttf");
+////             fontProvider.addFont(userDir + "/kokilabi.ttf");
+////             fontProvider.addFont(userDir + "/kokilai.ttf");
+////             fontProvider.addFont(userDir + "/kokilab.ttf");
+////             
+////             
+////
+////             
+//// 
+//////             fontProvider.addFont(userDir + "/Kokila Regular.ttf");
+//////             fontProvider.addFont(userDir + "/Mangal Regular.ttf");
+////
+////             converterProperties.setFontProvider(fontProvider);
+////             converterProperties.setCharset("UTF-8");
+////            // converterProperties.setFontSet(new FontSet().addFon);
+////            
+////                          // Convert HTML to PDF
+////             HtmlConverter.convertToPdf(content, pdfDocument, converterProperties);
+////
+////
+////             pdfDocument.close();
+////            
+////	        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+////
+////	        String newFilePath = userDir + "/downloadedFileAmong.pdf";
+////	        
+////	        saveModifiedExcel(arrayInputStream, newFilePath);
+////
+////            return byteArrayOutputStream.toByteArray();
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////            return null;
+////        } 
+//		
+//		
+//		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+//		    String userDir = System.getProperty("user.dir");
+//
+//		    PdfWriter writer = new PdfWriter(byteArrayOutputStream);
+//		    PdfDocument pdfDocument = new PdfDocument(writer);
+//
+//		    ConverterProperties converterProperties = new ConverterProperties();
+//
+//		    FontProvider fontProvider = new FontProvider();
+//		    //fontProvider.addFont(userDir + "/02-vakra-marathi-font.ttf", PdfEncodings.IDENTITY_H, null);
+//		    // Use a font that supports Marathi
+//
+//          fontProvider.addFont(userDir + "/kokila.ttf");
+//          fontProvider.addFont(userDir + "/kokilabi.ttf");
+//          fontProvider.addFont(userDir + "/kokilai.ttf");
+//          fontProvider.addFont(userDir + "/kokilab.ttf");
+//          
+//		    converterProperties.setFontProvider(fontProvider);
+//		    converterProperties.setCharset("UTF-8");
+//
+//		    // Convert HTML to PDF
+//		    HtmlConverter.convertToPdf(content, pdfDocument, converterProperties);
+//
+//		    pdfDocument.close();
+//
+//		    ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+//
+//		    String newFilePath = userDir + "/downloadedFileAmong.pdf";
+//		    saveModifiedExcel(arrayInputStream, newFilePath);
+//
+//		    return byteArrayOutputStream.toByteArray();
+//		} catch (IOException e) {
+//		    e.printStackTrace();
+//		    return null;
+//		}
+//    }
+//	
+// upload excel report started;
 	
 	@Override
-	public byte[] generatePdf(Long anukramank, Long id) {
-		
-		Property property = propertyRepository.findById(anukramank).orElseThrow(() -> new ResourceNotFoundException(anukramank + "", "", ""));
-		
-		List<Building> buildings =  property.getBuildings();
-		
-		Building building =null;
-		
-		for(Building building2 : buildings) {
-			if(building2.getId() == id) {
-				building = building2;
-			}
-		}
-		
-		String content = "<html lang=\"en\">"
-			    + "<head>"
-			    + "<meta charset=\"UTF-8\"/>"
-			    + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>"
-			    + "<title>Document</title>"
-			    + "<style>"
-//			    +"@font-face {"
-//			    +"font-family: 'Mangal';"
-//			    +"src: url('path/to/Mangal.ttf') format('truetype');"
-			    + "body {"
-			    + "    margin: 0;"
-			    + "    padding: 0px;"
-			    + "    background-color: white;"
-			    +"font-family: Kokila, sans-serif;\""
-			    + "}"
-			    + ".document {"
-			    + "    display: flex;"
-			    + "    justify-content: space-between;"
-			    + "}"
-			    + ".page {"
-			    + "    width: 100%;"
-			    + "    padding: 20px;"
-			    + "    border: 2px solid #000;"
-			    + "    background-color: white;"
-			    + "}"
-			    + ".header {"
-			    + "    text-align: center;"
-			   // + "    margin-bottom: 10px;"
-			    + "    font-weight: bold;"
-			    + "}"
-			    + ".content {"
-			    + "    margin-bottom: 20px;"
-			    + "}"
-			    + ".content p {"
-			    + "    margin: 2px 0;"
-			    + "}"
-			    + "table {"
-			    + "    width: 100%;"
-			    + "    border-collapse: collapse;"
-			    + "    margin-bottom: 20px;"
-			    + "}"
-			    + "th, td {"
-			    + "    border: 1px solid #000;"
-			    + "    padding: 8px;"
-			    + "    text-align: left;"
-			    + "}"
-			    + "th {"
-			    + "    background-color: white;"
-			    + "}"
-			    + "tfoot {"
-			    + "    font-weight: bold;"
-			    + "}"
-			    + ".footer {"
-			    + "    text-align: center;"
-			    + "    margin-top: 20px;"
-			    + "}"
-			    + ".footer p {"
-			    + "    margin: 5px 0;"
-			    + "}"
-			    + ".signatures {"
-			    + "    display: flex;"
-			    + "    justify-content: space-between;"
-			    + "    margin-top: 10px;"
-			    + "}"
-			    + ".signature {"
-			    + "    width: 45%;"
-			    + "    height: 40px;"
-			    + "    border-top: 1px solid #000;"
-			    + "    text-align: center;"
-			    + "    line-height: 40px;"
-			    + "}"
-			    + "</style>"
-			    + "</head>"
-			    + "<body>"
-			    + "<div class=\"document\">"
-			    + "    <!-- Left Side of the Document -->"
-			    + "    <div class=\"page\">"
-			    + "        <div class=\"header\">"
-			    + "            <p>कराच्या मागणीचे बील</p>"
-			    + "            <p>बिल नं. २०३</p>"
-			    + "            <p>कार्यालय ग्रामपंचायत किरमोटी (भा) मौजा टेंभरी</p>"
-			    + "            <p>पंचायत समिती हिंगणा जि. नागपूर</p>"
-			    + "            <p>( मुंबई ग्रा. पं. कायदा १९५८ कालम १२९ अन्वये)</p>"
-			    + "        </div>"
-			    + "        <div class=\"content\">"
-			    + "            <p> " + property.getOwnerName() + "</p>"
-			    + "            <p>यांचेकडुन</p>"
-			    + "            <p>वडगाव</p>"
-			    + "            <p>वार्ड नं   " + property.getWardNo() + "  घर नं" + property.getPlotNo() +"     खसरा नं.- "+ " " + "सोसायटीचे नाव मौजा टेंभरी याबद्दल</p>"
-			    + "            <p>सन 2024 - 2025 करीता पुढे नमुद केलेल्या रक्कमा</p>"
-			    + "        </div>"
-			    + "        <table>"
-			    + "            <thead>"
-			    + "                <tr>"
-			    + "                    <th>कराची नावे</th>"
-			    + "                    <th>सन 2023-24 मागील बाकी रुपये</th>"
-			    + "                    <th>सन 2024-25 चालू वर्ष रुपये</th>"
-			    + "                    <th>एकूण रक्कम</th>"
-			    + "                </tr>"
-			    + "            </thead>"
-			    + "            <tbody>"
-			    + "                <tr>"
-			    + "                    <td>घरावरील कर</td>"
-			    + "                    <td>" + building.getHomeTaxPrev() + "</td>"
-			    + "                    <td>" + building.getHomeTaxCurnt() + "</td>"
-			    + "					   <td>" + (building.getHomeTaxCurnt() + building.getHomeTaxPrev())+ "</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>खाली जागेचा कर</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>दिवाबत्ती कर</td>"
-			    + "                    <td>" + building.getElectTaxPrev() + "</td>"
-			    + "                    <td>" + building.getElectTaxCurnt() + "</td>"
-			    + "					   <td>" + (building.getElectTaxPrev() + building.getElectTaxCurnt())+ "</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>आरोग्य कर</td>"
-			    + "                    <td>" + building.getHealthTaxPrev() + "</td>"
-			    + "                    <td>" + building.getHealthTaxCurnt() + "</td>"
-			    + "					   <td>" + (building.getHealthTaxPrev() + building.getHealthTaxCurnt())+ "</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>सफाई कर</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>सामान्य पाणी कर</td>"
-			    + "                    <td>" + building.getWaterTaxPrev() + "</td>"
-			    + "                    <td>" + building.getWaterTaxCurnt() + "</td>"
-			    + "					   <td>" + (building.getWaterTaxPrev() + building.getWaterTaxCurnt())+ "</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>विशेष पाणी कर</td>"
-			    + "                    <td>" + building.getSpWaterTaxPrev() + "</td>"
-			    + "                    <td>" + building.getSpWaterTaxCurnt() + "</td>"
-			    + "					   <td>" + (building.getSpWaterTaxPrev() + building.getSpWaterTaxCurnt())+ "</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>उशीरा कर</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>नोटीस फी</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>अधिकाऱ्याची (वारंटी फी)</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                </tr>"
-			    + "                <tr>"
-			    + "                    <td>इतर</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                    <td>0</td>"
-			    + "                </tr>"
-			    + "            </tbody>"
-			    + "            <tfoot>"
-			    + "                <tr>"
-			    + "                    <td>एकूण</td>"
-			    + "                    <td>"+ (building.getHomeTaxPrev() + building.getElectTaxPrev() + building.getHealthTaxPrev() + building.getWaterTaxPrev() + building.getSpWaterTaxPrev()) +"</td>"
-			    + "                    <td>"+ (building.getHomeTaxCurnt() + building.getElectTaxCurnt() + building.getHealthTaxCurnt() + building.getWaterTaxCurnt() + building.getSpWaterTaxCurnt()) +"</td>"
-			    + "                    <td>"+ ((building.getHomeTaxPrev() + building.getElectTaxPrev() + building.getHealthTaxPrev() + building.getWaterTaxPrev() + building.getSpWaterTaxPrev())+(building.getHomeTaxCurnt() + building.getElectTaxCurnt() + building.getHealthTaxCurnt() + building.getWaterTaxCurnt() + building.getSpWaterTaxCurnt())) +"</td>"
-			    + "                </tr>"
-			    + "            </tfoot>"
-			    + "        </table>"
-			    + "        <div class=\"footer\">"
-			    + "            <p>वरील बिलात नमूद केलेल्या करदाखल्याच्या रकमा दि ____ आत पा. प. चे कार्यालयात पटवून पावती घ्यावी. असे न केल्यास आपले वर योग्य कारवाई करण्यात येईल.</p>"
-			    + "            <div class=\"signatures\">"
-			    + "                <p class=\"signature\">मागणी बिल मिळाल्याचाबत स्वाक्षरी</p></br>"
-			    + "                <p class=\"signature\">दिनांक:</p>"
-			    + "                <p class=\"signature\">सरपंच/सचिव</p><br />"
-			    + "                <p class=\"signature\">ग्रामपंचायत किरमोटी</p>"
-			    + "            </div></br></br>"
-			    + "            <div>टिप: महाराष्ट्र ग्रामपंचाय करव की मुधारणा) नियम २०१८ नुसार ३० सप्टेम्बर पर्यंत कर भरल्यास ५० सूट देण्यात येईल</div>"
-			    + "        </div>"
-			    + "    </div>"
-			    + "</div>"
-			    + "</body>"
-			    + "</html>";
-		
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-        	 String userDir = System.getProperty("user.dir");
-        	String fontPath = userDir + "/kokila.ttf";
-        	
-
-        	 PdfWriter writer = new PdfWriter(byteArrayOutputStream);
-             PdfDocument pdfDocument = new PdfDocument(writer);
-            
-             PdfFont font = PdfFontFactory.createFont(fontPath, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
-             ConverterProperties converterProperties = new ConverterProperties();
-             FontProvider fontProvider = new FontProvider();
-             fontProvider.addFont(userDir + "/kokila.ttf");
-             fontProvider.addFont(userDir + "/kokilabi.ttf");
-             fontProvider.addFont(userDir + "/kokilai.ttf");
-             fontProvider.addFont(userDir + "/kokilab.ttf");
-//             fontProvider.addFont(userDir + "/Kokila Regular.ttf");
-//             fontProvider.addFont(userDir + "/Mangal Regular.ttf");
-
-             converterProperties.setFontProvider(fontProvider);
-             converterProperties.setCharset("UTF-8");
-
-
-             // Convert HTML to PDF
-             HtmlConverter.convertToPdf(content, pdfDocument, converterProperties);
-
-
-             pdfDocument.close();
-            
-	        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-
-	        String newFilePath = userDir + "/downloadedFileAmong.pdf";
-	        
-	        saveModifiedExcel(arrayInputStream, newFilePath);
-
-            return byteArrayOutputStream.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } 
-    }
-	
-	// upload excel report started;
-	
-	@Override
-	public boolean uploadAmongExcel(MultipartFile file , String namuna) throws Exception {
+	public boolean uploadAmongExcel(MultipartFile file , String namuna, String village) throws Exception {
 		boolean fileUploded = false;
         try {
             InputStream inputStream = file.getInputStream();
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = null;
-
+            String vill [] = village.split("#");
 	        if(namuna.equalsIgnoreCase(PanchayatConstant.NAMUNA_EIGHT)) {
-	        	sheet = workbook.getSheetAt(0);
+	        	
+	        	if(vill[0].equalsIgnoreCase(PanchayatConstant.KINHI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(0);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.KIRMATI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(1);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.TURAKMARI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(2);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.TEMBHARI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(3);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.VATEGHAT_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(4);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.MIDC_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(5);
+	        	}
 	        }else if(namuna.equalsIgnoreCase(PanchayatConstant.NAMUNA_NINE)) {
-	        	sheet = workbook.getSheetAt(4);
+	        	if(vill[0].equalsIgnoreCase(PanchayatConstant.KINHI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(6);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.KIRMATI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(7);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.TURAKMARI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(8);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.TEMBHARI_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(9);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.VATEGHAT_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(10);
+	        	}else if(vill[0].equalsIgnoreCase(PanchayatConstant.MIDC_VILLAGE)) {
+	        		sheet = workbook.getSheetAt(11);
+	        	}
 	        }
 	        
 	        if (sheet == null) {
@@ -601,9 +677,9 @@ public class DocumentServiceImpl implements IDocumentService {
             List<Building> buildings = new ArrayList<>();
             
             if(namuna.equalsIgnoreCase(PanchayatConstant.NAMUNA_EIGHT)) {
-            	uploadNanumaEightProcess(sheet, properties, buildings);
+            	uploadNanumaEightProcess(sheet, properties, buildings, vill[0]);
 	        }else if(namuna.equalsIgnoreCase(PanchayatConstant.NAMUNA_NINE)) {
-	        	uploadNanumaNineProcess(sheet, properties, buildings);
+	        	uploadNanumaNineProcess(sheet, properties, buildings, vill[0]);
 	        }
           
             workbook.close();
@@ -666,7 +742,7 @@ public class DocumentServiceImpl implements IDocumentService {
 	}
 	
 	
-	private void uploadNanumaEightProcess(Sheet sheet, List<Property> properties, List<Building> buildings) {
+	private void uploadNanumaEightProcess(Sheet sheet, List<Property> properties, List<Building> buildings, String village) {
 		 Iterator<Row> rows = sheet.iterator();
         int rowIndex = 0;
         while (rows.hasNext()) {
@@ -678,6 +754,7 @@ public class DocumentServiceImpl implements IDocumentService {
         		Iterator<Cell> cellIterator = row.cellIterator();
         		int cellIndex = 0;
         		Property property = new Property();
+        		property.setVillage(village);
         		Building building = new Building();
         		 while (cellIterator.hasNext()) {
         			 Cell cell = cellIterator.next();
@@ -783,7 +860,7 @@ public class DocumentServiceImpl implements IDocumentService {
 		
 	}
 	
-	private void uploadNanumaNineProcess(Sheet sheet, List<Property> properties, List<Building> buildings) {
+	private void uploadNanumaNineProcess(Sheet sheet, List<Property> properties, List<Building> buildings, String village) {
 		
 		 Iterator<Row> rows = sheet.iterator();
 	        int rowIndex = 0;
@@ -796,6 +873,7 @@ public class DocumentServiceImpl implements IDocumentService {
 	        		Iterator<Cell> cellIterator = row.cellIterator();
 	        		int cellIndex = 0;
 	        		Property property = new Property();
+	        		property.setVillage(village);
 	        		Building building = new Building();
 	        		 while (cellIterator.hasNext()) {
 	        			 Cell cell = cellIterator.next();
@@ -1047,7 +1125,7 @@ public class DocumentServiceImpl implements IDocumentService {
 	        cellIndex++;
 	    }
 	}
-
+	
 
 
 
