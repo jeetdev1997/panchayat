@@ -80,34 +80,35 @@ public class DocumentController {
 	                .body(new InputStreamResource(newFileInputStream));
     }
 	
-	@GetMapping("/generate-pdf")
-    public ResponseEntity<byte[]> generatePdf(@RequestParam Long anuKramank, @RequestParam Long id) throws IOException {
-        // If no content is provided, use a default value or an empty string.
-
-        byte[] pdfBytes = documentService.generatePdf(anuKramank, id);
-
-        if (pdfBytes == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=document.pdf");
-        headers.add(HttpHeaders.CONTENT_TYPE, "application/pdf");
-
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-    }
+//	@GetMapping("/generate-pdf")
+//    public ResponseEntity<?> generatePdf(@RequestParam Long anuKramank, @RequestParam Long id) throws IOException {
+//        // If no content is provided, use a default value or an empty string.
+//
+//        byte[] pdfBytes = documentService.generatePdf(anuKramank, id);
+//
+//        if (pdfBytes == null) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//
+//        HttpHeaders headers = new HttpHeaders();
+////        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=document.pdf");
+////        headers.add(HttpHeaders.CONTENT_TYPE, "application/pdf");
+//
+//        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+//    	//return documentService.generatePdfTry(anuKramank, id);
+//    }
     
     
     // for uploading excel 
     
     @PostMapping("/upload/namuna/eight")
-    public ResponseEntity<ResponseDTO> uploadExcelNamunaEight(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ResponseDTO> uploadExcelNamunaEight(@RequestParam("file") MultipartFile file, @RequestParam String village) {
     	if(file == null) {
     		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseDTO(PanchayatConstant.BAD_REQUEST, PanchayatConstant.FILE_UPLOAD_ERROR));
     	}
     	
     	try {
-    		boolean isUpload =  documentService.uploadAmongExcel(file, PanchayatConstant.NAMUNA_EIGHT);
+    		boolean isUpload =  documentService.uploadAmongExcel(file, PanchayatConstant.NAMUNA_EIGHT, village);
     		if(isUpload) {
     			return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO(PanchayatConstant.STATUS_200, PanchayatConstant.MESSAGE_200_FILE_UPLOAD));
     		}else {
@@ -120,14 +121,14 @@ public class DocumentController {
     }
     
     @PostMapping("/upload/namuna/nine")
-    public ResponseEntity<ResponseDTO> uploadExcelNamunaNine(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ResponseDTO> uploadExcelNamunaNine(@RequestParam("file") MultipartFile file , @RequestParam String village) {
     	if(file == null) {
     		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseDTO(PanchayatConstant.BAD_REQUEST, PanchayatConstant.FILE_UPLOAD_ERROR));
     	}
     	
     	try {
     		System.out.println("inside controller for uploading file");
-    		boolean isUpload =  documentService.uploadAmongExcel(file, PanchayatConstant.NAMUNA_NINE);
+    		boolean isUpload =  documentService.uploadAmongExcel(file, PanchayatConstant.NAMUNA_NINE, village);
     		if(isUpload) {
     			return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO(PanchayatConstant.STATUS_200, PanchayatConstant.MESSAGE_200_FILE_UPLOAD));
     		}else {
